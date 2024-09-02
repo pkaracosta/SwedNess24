@@ -1,0 +1,248 @@
+/*******************************************************************************
+*         McStas instrument definition URL=http://www.mcstas.org
+*
+* Instrument: reflectometer_alignment
+*
+* %Identification
+* Written by:  Pia Jensen (bozack@bozack.dk), Mads Bertelsen, Linda Udby (udby@nbi.dk)
+* Date:        14.09.2016
+* Origin:      Niels Bohr Instute, University of Copenhagen
+* Release:     McStas 2.x
+* Version:     0.2
+*
+* Simple reflectometer with two slits, a sample (either none, mirror or multilayer),
+* and a detector. For use in the OMIC summer school 2012.
+*
+* %Description
+* This simple reflectometer consists of a source (using the standard PSI parameters
+* for three Maxwellian distributions), on which the user can control the bandwidth
+* by simply choosing a minumum and maximum value. Two slits handle the divergence
+* distribution on the sample. The sample itself can either be an empty spot or a simple
+* mirror where the absorption and incoherent scattering is simulated seperately. 
+* A simple PSD detector is used for detecting the scattered beam. 
+* The scattering is in the horizontal plane.
+* 
+* Example: mcrun reflectometer_alignment.instr <parameters=values>
+*
+* %Parameters
+* lambda_min:           [AA]   Minimum wavelength from source
+* lambda_max:           [AA]   Maximum wavelength from source
+* sampletranslation:    [m]    Sample translation orthogonal to incoming beam
+* slitwidth:            [m]    Width of slit pinholes                  
+* slitheight:           [m]    Height of slit pinholes                 
+* dist_source2slit:     [m]    Distance between source and first slit  
+* dist_slit2slit:       [m]    Distance between slits                  
+* dist_slit2sample:     [m]    Distance between second slit and sample 
+* dist_sample2detector: [m]    Distance between sample and detector    
+* sampletype:           [1]    Sample type: 0 none, 1 mirror, 2+ multilayer
+* MR_Qc:                [AA^-1]   Critical Q-vector length of mirror sample
+* sampleangle:          [deg]  Rotation angle of sample aka theta
+* detectorangle:        [deg]  Rotation angle of detector window aka 2 theta
+* beamstop:		[1]    If 0 the beamstop is out, if 1 it is in	
+*
+* The sample types are as follows:
+*  0  no sample (for looking at direct beam)
+*  1  simple mirror (for alignment purposes)
+* 
+* %End
+*******************************************************************************/
+
+DEFINE INSTRUMENT reflectometer(lambda_min = 5.3, lambda_max = 5.45, sampletranslation = 0, slitwidth = 0.0006, slitheight = 0.08, dist_slit2slit = 3.2, dist_sample2detector = 2, sampletype = 1, MR_Qc = 0.017, sampleangle = 0.2, detectorangle = 0, beamstop = 0)
+
+DECLARE
+%{
+double blocktranslation;
+double slittranslation      = 0;
+double dist_source2slit     = 1;
+double dist_slit2sample     = 0.08;//Distance between second slit and sample center
+double samplesize           = 0.15;
+double substratethickness   = 0.003;// Thickness of the incoherently and absorbing part of the sample
+
+%}
+
+INITIALIZE
+%{
+  blocktranslation = -slittranslation;//If set translates everything after the second sample slit
+
+%}
+
+// Begin instrument
+TRACE
+
+// Origin
+COMPONENT Origin = Progress_bar()
+  AT (0,0,0) ABSOLUTE
+
+// Source (so far just with the PSI source distribution)
+COMPONENT Source = Source_Maxwell_3(
+    xwidth=0.12,
+    yheight=0.12,
+    Lmin = lambda_min, 
+    Lmax = lambda_max, 
+    dist = dist_source2slit+dist_slit2slit,
+    focus_xw = slitwidth, focus_yh = slitheight, 
+    T1 = 150.42, T2 = 38.72, T3 = 14.84,
+    I1 = 3.67E11, I2 = 3.64E11, I3 = 0.95E11)
+  AT (0, 0, 0) RELATIVE Origin
+
+/*
+COMPONENT mon_PSD_atSource = PSD_monitor(
+    nx = 100, ny = 100, 
+    filename = "mon_PSD_atSource.dat",
+    xwidth = 0.2, yheight = 0.2, 
+    restore_neutron = 1)
+  AT (0, 0, 0.01) RELATIVE Source
+
+COMPONENT mon_div_atSource = Divergence_monitor(
+    nh = 100, nv = 100, 
+    filename = "mon_div_atSource",
+    restore_neutron = 1, 
+    xwidth = 0.2, yheight = 0.2, 
+    maxdiv_h = 10, maxdiv_v = 10)
+  AT (0, 0, 1e-6) RELATIVE PREVIOUS
+
+COMPONENT mon_Lmon_atSource = L_monitor(
+    nL = 100, 
+    filename = "mon_Lmon_atSource.dat", 
+    xwidth = 0.2, yheight = 0.2, 
+    Lmin = 0, Lmax = 22, 
+    restore_neutron = 1)
+  AT (0, 0, 1e-6) RELATIVE PREVIOUS
+  */
+// First slit
+COMPONENT Slit1 = Slit(
+    xwidth = slitwidth, yheight = slitheight)
+  AT (0, 0, dist_source2slit) RELATIVE Source
+  /*
+COMPONENT mon_PSD_afterSlit1 = PSD_monitor(
+    nx = 100, ny = 100, 
+    filename = "mon_PSD_afterslit1.dat",
+    xwidth = slitwidth+0.1, yheight = slitheight+0.1, 
+    restore_neutron = 1)
+  AT (0, 0, 0.01) RELATIVE Slit1
+
+COMPONENT mon_div_afterSlit1 = Divergence_monitor(
+    nh = 100, nv = 100, 
+    filename = "mon_div_afterSlit1",
+    restore_neutron = 1, 
+    xwidth = slitwidth+0.1, yheight = slitheight+0.1, 
+    maxdiv_h = 10, maxdiv_v = 10)
+  AT (0, 0, 1e-6) RELATIVE PREVIOUS
+
+COMPONENT mon_Lmon_afterSlit1 = L_monitor(
+    nL = 100, 
+    filename = "mon_Lmon_afterSlit1.dat", 
+    xwidth = slitwidth+0.1, yheight = slitheight+0.1, 
+    Lmin = 0, Lmax = 22, 
+    restore_neutron = 1)
+  AT (0, 0, 1e-6) RELATIVE PREVIOUS
+  */
+// Second slit
+COMPONENT Slit2 = Slit(
+    xwidth = slitwidth, yheight = slitheight)
+  AT (0, 0, dist_slit2slit) RELATIVE Slit1
+
+  /*COMPONENT mon_PSD_afterSlit2 = PSD_qqmonitor(
+    nx = 100, ny = 100, 
+    filename = "mon_PSD_afterslit2.dat",
+    xwidth = slitwidth+0.1, yheight = slitheight+0.1, 
+    restore_neutron = 1)
+  AT (0, 0, 0.01) RELATIVE Slit2
+
+COMPONENT mon_div_afterSlit2 = Divergence_monitor(
+    nh = 100, nv = 100, 
+    filename = "mon_div_afterSlit2",
+    restore_neutron = 1, 
+    xwidth = slitwidth+0.1, yheight = slitheight+0.1, 
+    maxdiv_h = 10, maxdiv_v = 10)
+  AT (0, 0, 1e-6) RELATIVE PREVIOUS
+
+COMPONENT mon_Lmon_afterSlit2 = L_monitor(
+    nL = 100, 
+    filename = "mon_Lmon_afterSlit2.dat", 
+    xwidth = slitwidth+0.1, yheight = slitheight+0.1, 
+    Lmin = 0, Lmax = 22, 
+    restore_neutron = 1)
+  AT (0, 0, 1e-6) RELATIVE PREVIOUS
+  */
+// Sample position and rotation arms
+COMPONENT Arm_sampleNOROTNOTRANS = Arm()
+  AT (blocktranslation, 0, dist_slit2sample) RELATIVE Slit2
+
+COMPONENT Arm_sampleNOROT = Arm()
+  AT (sampletranslation, 0, 0) RELATIVE Arm_sampleNOROTNOTRANS  //Slit2    //??
+
+COMPONENT Arm_sample = Arm()
+  AT (0, 0, 0) RELATIVE Arm_sampleNOROT
+  ROTATED (0, sampleangle, 0) RELATIVE Arm_sampleNOROT // originally Source...
+
+
+
+// MIRROR sample
+COMPONENT Mirror_1_position = Arm()
+AT (0,0,0) RELATIVE Arm_sample
+ROTATED (0,90,0) RELATIVE Arm_sample
+
+COMPONENT Sample_Mirror_backside_before = Isotropic_Sqw( // settings as sapphire
+    // rho=5/254.5, sigma_abs=0.462, sigma_inc=0.768, sigma_coh=15.686,p_interact=0.2, // settings as sapphire
+    rho=0.1, sigma_abs=1, sigma_inc=1, sigma_coh=0,p_interact=-1, // arbitrary settings
+    //rho=1/13.827, sigma_abs=5.08, sigma_inc=4.935, sigma_coh=0,p_interact=0.2,
+    xwidth = samplesize, yheight = samplesize, zdepth = substratethickness)
+  WHEN (sampletype == 1 && sampleangle < 0) AT (0, 0, -substratethickness/2-1e-6) RELATIVE Mirror_1_position
+
+COMPONENT Sample_Mirror = Mirror(
+    xwidth = samplesize, yheight = samplesize, center = 1,
+    R0 = 0.99, Qc = MR_Qc, alpha = 6.07, m = 1, W = 0.003,transmit=1) 
+  WHEN (sampletype == 1) AT (0, 0, 0) RELATIVE Arm_sample
+  ROTATED (0, 90, 0) RELATIVE Arm_sample
+
+COMPONENT Sample_Mirror_backside_after = Isotropic_Sqw( // settings as sapphire
+    // rho=5/254.5, sigma_abs=0.462, sigma_inc=0.768, sigma_coh=15.686,p_interact=0.2, 
+    rho=0.1, sigma_abs=1, sigma_inc=1, sigma_coh=0,p_interact=-1, // arbitrary settigns
+   // rho=1/13.827, sigma_abs=0.508, sigma_inc=0.4935, sigma_coh=0,p_interact=0.2,
+    xwidth = samplesize, yheight = samplesize, zdepth = substratethickness)
+  WHEN (sampletype == 1 && sampleangle >= 0) AT (0, 0, -substratethickness/2-1e-6) RELATIVE Sample_Mirror
+
+// Detector
+COMPONENT Arm_detectorONLYROT = Arm()
+  AT (0, 0, 0) RELATIVE Arm_sampleNOROTNOTRANS
+  ROTATED (0, detectorangle, 0) RELATIVE Source
+
+COMPONENT Arm_detector = Arm()
+  AT (0, 0, dist_sample2detector) RELATIVE Arm_detectorONLYROT
+
+COMPONENT beamstop = Beamstop(
+    xwidth=0.003, yheight=0.20)
+WHEN (beamstop)  AT (0, 0, dist_sample2detector-0.02) RELATIVE Arm_sampleNOROTNOTRANS
+
+
+COMPONENT DetectorWindow = PSD_monitor(
+    nx = 4, ny = 50, 
+    filename = "mon_detector_window",
+    restore_neutron = 1, 
+    xwidth = 0.008, yheight = 0.2)
+  AT (0, 0, 0) RELATIVE Arm_detector
+
+COMPONENT Detector = PSD_monitor(
+    nx = 100, ny = 50, 
+    filename = "mon_detector",
+    restore_neutron = 1, 
+    xwidth = 0.2, yheight = 0.2)
+  AT (0, 0,  dist_sample2detector+0.001) RELATIVE  Arm_sampleNOROTNOTRANS
+
+FINALLY
+%{
+%}
+
+END
+
+
+
+
+
+
+
+
+
+
+

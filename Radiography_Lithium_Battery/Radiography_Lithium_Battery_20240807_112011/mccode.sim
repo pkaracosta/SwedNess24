@@ -1,0 +1,111 @@
+McStas simulation description file for Radiography_absorbing_edge.
+Date:    Wed Aug  7 11:20:11 2024
+Program: McStas 3.4 - Sep. 19, 2023
+
+begin instrument: Radiography_absorbing_edge
+  File: /home/user/Repos/swedness2023-instrumentfiles/Radiography_Lithium_Battery/Radiography_Lithium_Battery_20240807_112011/mccode
+  Source: Radiography_Lithium_Battery.instr
+  Parameters:  D(double) L(double) l(double) sample_used(double) battery_charge(double)
+  Trace_enabled: yes
+  Default_main: yes
+  Embedded_runtime: yes
+end instrument
+
+begin simulation: /home/user/Repos/swedness2023-instrumentfiles/Radiography_Lithium_Battery/Radiography_Lithium_Battery_20240807_112011
+  Format: McCode with text headers
+  URL: http://www.mccode.org
+  Creator: McStas 3.4 - Sep. 19, 2023
+  Instrument: Radiography_Lithium_Battery.instr
+  Ncount: 1000000
+  Trace: no
+  Gravitation: no
+  Seed: 1723022411699975
+  Directory: /home/user/Repos/swedness2023-instrumentfiles/Radiography_Lithium_Battery/Radiography_Lithium_Battery_20240807_112011
+  Param: D=0.01
+  Param: L=5
+  Param: l=0.1
+  Param: sample_used=0
+  Param: battery_charge=0
+end simulation
+
+begin data
+  Date: Wed Aug  7 11:20:15 2024 (1723022415)
+  type: array_2d(500, 200)
+  Source: Radiography_absorbing_edge (Radiography_Lithium_Battery.instr)
+  component: PSD_1cm_detector_50mum
+  position: 0 0 10.11
+  title: PSD monitor
+  Ncount: 1000000
+  filename: 2D_PSD_detector.dat
+  statistics: X0=0.00162764; dX=0.175218; Y0=-0.000347158; dY=0.577409;
+  signal: Min=0; Max=5.63109e-20; Mean=8.83828e-21;
+  values: 8.83828e-16 1.88591e-18 272624
+  xvar: X 
+  yvar: Y 
+  xlabel: X position [cm]
+  ylabel: Y position [cm]
+  zvar: I
+  zlabel: Signal per bin
+  xylimits: -0.3 0.3 -1 1
+  variables: I I_err N
+end data
+
+begin data
+  Date: Wed Aug  7 11:20:15 2024 (1723022415)
+  type: array_1d(500)
+  Source: Radiography_absorbing_edge (Radiography_Lithium_Battery.instr)
+  component: edge_monitor_50mum
+  position: 0 0 10.1001
+  title: Linear PSD monitor
+  Ncount: 1000000
+  filename: edge_monitor.dat
+  statistics: X0=1.63938e-05; dX=0.00174857;
+  signal: Min=6.59648e-19; Max=3.06496e-18; Mean=1.77093e-18;
+  values: 8.85465e-16 1.88765e-18 273180
+  xvar: x
+  yvar: (I,I_err)
+  xlabel: x-Position [m]
+  ylabel: Intensity
+  xlimits: -0.003 0.003
+  variables: x I I_err N
+end data
+
+begin data
+  Date: Wed Aug  7 11:20:15 2024 (1723022415)
+  type: array_1d(50)
+  Source: Radiography_absorbing_edge (Radiography_Lithium_Battery.instr)
+  component: edge_monitor_diff
+  position: 0 0 10.1002
+  title: Linear PSD monitor
+  Ncount: 1000000
+  filename: edge_monitor_zoom.dat
+  statistics: X0=-3.13421e-05; dX=0.000186881;
+  signal: Min=6.95864e-19; Max=2.9282e-18; Mean=1.73807e-18;
+  values: 8.69035e-17 5.91192e-19 26743
+  xvar: x
+  yvar: (I,I_err)
+  xlabel: x-Position [m]
+  ylabel: Intensity
+  xlimits: -0.00031 0.00026
+  variables: x I I_err N
+end data
+
+begin data
+  Date: Wed Aug  7 11:20:15 2024 (1723022415)
+  type: array_1d(49)
+  Source: Radiography_absorbing_edge (Radiography_Lithium_Battery.instr)
+  component: edge_monitor_diff
+  position: 0 0 10.1002
+  title: Linear PSD monitor difference
+  Ncount: 1000000
+  filename: edge_monitor_zoom_diff.dat
+  statistics: X0=-7.26836e-05; dX=0.00017559;
+  signal: Min=0; Max=4.25865e-19; Mean=9.35764e-20;
+  values: 4.58524e-18 3.91479e-19 51919
+  xvar: x
+  yvar: (I,I_err)
+  xlabel: x-Position, difference [m]
+  ylabel: Intensity difference
+  xlimits: -0.00031 0.00026
+  variables: x I I_err N
+end data
