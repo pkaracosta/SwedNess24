@@ -1,0 +1,10 @@
+Launching Software from the command line:
+
+McStas: 
+mcgui
+
+FullProf:
+/opt/FullProf/winplotr-2006
+
+Mantid:
+mantidworkbench
