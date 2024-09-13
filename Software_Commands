@@ -8,3 +8,6 @@ FullProf:
 
 Mantid:
 mantidworkbench
+
+Copy your data files to the desktop by pasting the following line on the command line:
+cp -r /home/shared/FullProf_Data/ .
