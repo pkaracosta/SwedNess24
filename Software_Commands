@@ -11,3 +11,6 @@ mantidworkbench
 
 Copy your data files to the desktop by pasting the following line on the command line:
 cp -r /home/shared/FullProf_Data/ .
+cp -r /home/shared/Additional_Data/ .
+cp -r /home/shared/QENS_tutorial/ .
+cp -r /home/shared/'Mark Analysis'/ .
